@@ -60,17 +60,18 @@ class AccountProjector(private val repository: AccountViewRepository) {
         return accountView.get().ledgerEntries
     }
 
+    // Re-implementation of a GetTotalAvailableBalanceQuery in BankInfoProjector
     // NB: This implementation is placeholder and naive:
     // - it will break if the sum of balances in our system is more than
     //      Int.MAX_VALUE
     // - it loads all accounts into memory, which I presume is not ideal at
     //      scale
-    @QueryHandler
-    fun handle(query: GetTotalAvailableBalanceQuery): Money {
-//        TODO: Rather optimise this for queries: maintain a `totalBalance` field on a LedgerInfo entity
-//        and then query against that here.
-        return repository.findAll().sumOf { it.balance }
-    }
+//    @QueryHandler
+//    fun handle(query: GetTotalAvailableBalanceQuery): Money {
+////        TODO: Rather optimise this for queries: maintain a `totalBalance` field on a LedgerInfo entity
+////        and then query against that here.
+//        return repository.findAll().sumOf { it.balance }
+//    }
 
     @QueryHandler
     fun handle(query: ListAccountsQuery): List<AccountView> {
