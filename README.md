@@ -21,6 +21,7 @@ To run this application, you'll need
 - [x] Add timestamps to LedgerEntries
 - [ ] Add tests (naughty me, I should have done this earlier :| )
 
-## Questions
+## Notes
+- Should I try to take the timestamps out of LedgerEntryView and put them instead inside the messages that prompt LedgerEntry creation
 - Is there a way to generate account IDs inside the Command instead of requiring the command sender to generate an ID and then pass it in the command (breaks encapsulation)
 - Is there something we can do about having to use `var` so much instead of `val` (such as in Spring Data JPA entities)?
