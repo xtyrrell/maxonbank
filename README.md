@@ -17,6 +17,10 @@ To run this application, you'll need
 
 
 ## Todos
-- [ ] Maintain a `totalBalance` value instead of calculating one on the fly 
-- [ ] Add timestamps to LedgerEntries
-- [ ] See if there's a way to generate account IDs inside the Command instead of requiring the command sender to generate an ID and then pass it in the command (this is poor encapsulation)
+- [x] Maintain a `totalBalance` value instead of calculating one on the fly 
+- [x] Add timestamps to LedgerEntries
+- [ ] Add tests (naughty me, I should have done this earlier :| )
+
+## Questions
+- Is there a way to generate account IDs inside the Command instead of requiring the command sender to generate an ID and then pass it in the command (breaks encapsulation)
+- Is there something we can do about having to use `var` so much instead of `val` (such as in Spring Data JPA entities)?

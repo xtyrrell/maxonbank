@@ -6,6 +6,8 @@ import com.xtyrrell.maxonbank.coreapi.Money
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.*
 import javax.persistence.*
+import org.hibernate.annotations.CreationTimestamp
+import java.time.LocalDateTime
 
 
 @Entity
@@ -37,10 +39,9 @@ class LedgerEntryView(
     var entryType: LedgerEntryType,
     var amount: Money,
     var description: String? = null,
-
     ) {
-    // https://stackoverflow.com/questions/47617726/creationtimestamp-and-updatetimestamp-dont-work-in-kotlin
-//    @field:CreationTimestamp lateinit var timestamp: Date
+    // Important: server timezone should be set to UTC!
+    @CreationTimestamp lateinit var timestamp: LocalDateTime
 }
 
 interface AccountViewRepository : JpaRepository<AccountView, UUID>
