@@ -3,6 +3,7 @@ package com.xtyrrell.maxonbank.query
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.xtyrrell.maxonbank.coreapi.Money
+import org.axonframework.modelling.command.AggregateMember
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.*
 import javax.persistence.*
@@ -15,7 +16,9 @@ class AccountView(
     @Id var accountId: UUID,
     var balance: Money = 0,
     @JsonManagedReference
-    @OneToMany(mappedBy = "accountView", fetch = FetchType.EAGER, cascade = [CascadeType.ALL]) var ledgerEntries: MutableList<LedgerEntryView> = Collections.emptyList()
+    @OneToMany(mappedBy = "accountView", fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
+    @AggregateMember
+        var ledgerEntries: MutableList<LedgerEntryView> = Collections.emptyList()
 ) {
     fun addLedgerEntry(ledgerEntry: LedgerEntryView) {
         ledgerEntry.accountView = this
