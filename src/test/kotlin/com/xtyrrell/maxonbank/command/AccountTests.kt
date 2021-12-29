@@ -102,5 +102,15 @@ class AccountTests {
                 .`when`(WithdrawFundsCommand(accountId, 0))
                 .expectException(FundsWithdrawalException::class.java)
         }
+
+        @Test
+        fun `should prevent withdrawing funds greater than account balance`() {
+            val accountId = UUID.randomUUID()
+
+            fixture
+                .given(AccountOpenedEvent(accountId), FundsDepositedEvent(accountId, 500))
+                .`when`(WithdrawFundsCommand(accountId, 600))
+                .expectException(FundsWithdrawalException::class.java)
+        }
     }
 }
