@@ -17,20 +17,13 @@ class AccountsController(
 ) {
 
     @PostMapping
-    fun create(): CompletableFuture<UUID> {
-        return commandGateway.send(OpenAccountCommand())
-    }
+    fun create(): CompletableFuture<UUID> = commandGateway.send(OpenAccountCommand())
 
     @GetMapping
-    fun index() = queryGateway.query(ListAccountsQuery(), ResponseTypes.multipleInstancesOf(AccountView::class.java))
+    fun index(): CompletableFuture<List<AccountView>> = queryGateway.query(ListAccountsQuery(), ResponseTypes.multipleInstancesOf(AccountView::class.java))
 
-    // TODO: Return this in a machine-readable format
     @GetMapping("/total-balance")
-    fun totalBalance(): String {
-        val totalBalance = queryGateway.query(GetTotalAvailableBalanceQuery(), ResponseTypes.instanceOf(Money::class.java))
-
-        return "The total available balance across all accounts at MaxonBank is ${totalBalance.get()}"
-    }
+    fun totalBalance() = queryGateway.query(GetTotalAvailableBalanceQuery(), ResponseTypes.instanceOf(Money::class.java))
 
     @PostMapping("/{accountId}/deposits")
     fun deposit(

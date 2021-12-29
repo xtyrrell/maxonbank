@@ -14,7 +14,7 @@ import java.util.*
 
 @RequestMapping("/test")
 @RestController
-class AccountsTestController(
+class DemoAccountsController(
     val accountRepository: AccountViewRepository
 ) {
     @GetMapping("/one-ac") fun addA(): AccountView {
