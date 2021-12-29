@@ -38,9 +38,14 @@ class Account() {
 
     @CommandHandler
     fun handle(command: WithdrawFundsCommand) {
-        // Only allow withdrawals of amounts >= current balance
+         //Only allow withdrawals of amounts >= current balance
         if (command.amount > balance) {
             throw FundsWithdrawalException("The amount you want to withdraw cannot exceed your balance")
+        }
+
+        // Prohibit withdrawals of zero or negative amounts
+        if (command.amount <= 0) {
+            throw FundsWithdrawalException("The amount you want to withdraw cannot be zero or negative")
         }
 
         apply(FundsWithdrawnEvent(accountId, command.amount))
