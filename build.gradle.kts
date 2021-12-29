@@ -27,6 +27,7 @@ dependencies {
     implementation("org.junit.jupiter:junit-jupiter:5.7.0")
     runtimeOnly("org.hsqldb:hsqldb")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.axonframework:axon-test:4.5.5")
 }
 
 allOpen {
