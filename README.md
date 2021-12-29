@@ -20,6 +20,9 @@ To run this application, you'll need
 - [x] Maintain a `totalBalance` value instead of calculating one on the fly 
 - [x] Add timestamps to LedgerEntries
 - [ ] Add tests (naughty me, I should have done this earlier :| )
+  - [x] test Account commands (src/test/kotlin/com/xtyrrell/maxonbank/command/AccountTests.kt)
+  - [ ] test Account queries
+  - [ ] test AccountsController
 
 ## Notes
 - Should I try to take the timestamps out of LedgerEntryView and put them instead inside the messages that prompt LedgerEntry creation
