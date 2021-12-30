@@ -9,6 +9,16 @@ import java.util.*
 @Component
 class AccountProjector(private val repository: AccountViewRepository) {
 
+    // An event-sourced approach would store keep a local variable `balance`
+    // here
+    //private val balance = 0
+    // Instead, we're storing state in a DB (including balance and a bunch of other things).
+    // Our approach is more memory efficient (for example, we don't need to keep in memory a list of all transactions,
+    // which is unbounded in size. So it's clearly better to store that in a DB.
+    // We could consider a hybrid approach where some data (like unbounded lists of transactions) are kept in the DB, while
+    // other data (like balances) are event-sourced. However, I don't see any clear benefits to this, so we're instead
+    // keeping all data in the DB.
+
     @EventHandler
     fun on(event: AccountOpenedEvent) {
         val accountView = AccountView(event.accountId, 0)

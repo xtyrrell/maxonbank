@@ -22,9 +22,13 @@ To run this application, you'll need
 - [ ] Add tests (naughty me, I should have done this earlier :| )
   - [x] test Account commands (src/test/kotlin/com/xtyrrell/maxonbank/command/AccountTests.kt)
   - [ ] test Account queries
+    - This might a fair bit of tinkering work to get Axon integrations mocked or somehow test-ready. Obviously this would be invaluable for a production app, but I'm going to leave it for now.
   - [ ] test AccountsController
+    - This also needs a bit of work to get set up. We'd want fixture data (sample Accounts and linked LedgerEntries) to work with in tests. We'd want this fixture data to be reset for each test. I'm going to leave this for now.
 
 ## Notes
-- Should I try to take the timestamps out of LedgerEntryView and put them instead inside the messages that prompt LedgerEntry creation
-- Is there a way to generate account IDs inside the Command instead of requiring the command sender to generate an ID and then pass it in the command (breaks encapsulation)
+- Traditional architecture has a service layer in between the interface layer (AccountsController for the web interface) and the data layer. Maxonbank does not have this, as Axon's queryGateway and commandGateway feel sufficiently abstracted, and I don't see any clear benefit to doing so. However, we could still consider this.
+- I think I should try to take the timestamps out of LedgerEntryView and put them instead inside the messages that prompt LedgerEntry creation, which would be a more accurate record of ledger entry timestamps.
 - Is there something we can do about having to use `var` so much instead of `val` (such as in Spring Data JPA entities)?
+- A lot of state is stored in the database instead of being event sourced. What are the tradeoffs of this? Would it be better to source all or more state from events? For example, the Account projection (query/AccountProjection.kt) stores all state in an AccountView Hibernate / Spring Data JPA @Entity.
+  - It makes sense to me that storing unbounded data (like an account's ledger entries) in a DB is better than having it event-sourced for memory reasons. However, other data like balances I believe would work just fine with an event-sourced approach.
