@@ -1,8 +1,6 @@
  # MaxonBank
 MaxonBank is a Kotlin + Spring Boot + Axon Framework application that supports opening, depositing to, and withdrawing from accounts.
 
-We use the terminology as described in the [Ubiquitous Language Notion document](https://www.notion.so/Ubiquitous-Language-51b1115c4f42410fb2bd10e52548b1ad).
-
 The application is structured around the CQRS pattern. It has the following packages:
 - `coreapi` defines the basic shared interfaces: the commands, events, exceptions, and queries that are then used by the different parts of the application
 - `command` defines each Aggregate model with all of its command handlers, each applying its relevant business logic before publishing the relevant event
@@ -12,7 +10,7 @@ The application is structured around the CQRS pattern. It has the following pack
 ## Getting started
 
 To run this application, you'll need
-- java 17
+- java 17 (try out `asdf` for managing toolchain versions if you don't have java 17)
 - a running Axon Server -- you can get it using docker or as a JAR
 
 Once you've started the Axon Server, and it's running and accessible at localhost at the standard port, you can start the MaxonbankApplication at `MaxonbankApplication.kt`.
