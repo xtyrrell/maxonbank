@@ -15,6 +15,9 @@ To run this application, you'll need
 - java 17
 - a running Axon Server -- you can get it using docker or as a JAR
 
+Once you've started the Axon Server, and it's running and accessible at localhost at the standard port, you can start the MaxonbankApplication at `MaxonbankApplication.kt`.
+
+Then, hit http://localhost:8080/accounts. You should see an empty list in JSON. Check out `web/AccountsController.kt` for all the endpoints you can interact with.
 
 ## Todos
 - [x] Maintain a `totalBalance` value instead of calculating one on the fly 
