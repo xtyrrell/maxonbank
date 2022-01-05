@@ -6,38 +6,33 @@ import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle.apply
 import org.axonframework.spring.stereotype.Aggregate
-import java.util.*
+import java.util.UUID
 
 @Aggregate
 class Account() {
 
-    // Question: Is my use of lateinit here correct? I am using it because
-    // `aggregateId` is initialized in the AccountOpenedEvent handler.
-    // So I know it's not null whenever its used, but I don't want to have to
-    // manually handle nullability.
     @AggregateIdentifier
     private lateinit var accountId: UUID
 
     private var balance = 0
 
     @CommandHandler
-    constructor(command: OpenAccountCommand) : this() {
-        val aggregateId = UUID.randomUUID()
-        apply(AccountOpenedEvent(aggregateId))
+    constructor(command: Commands.OpenAccount) : this() {
+        apply(Events.AccountOpened(command.accountId))
     }
 
     @CommandHandler
-    fun handle(command: DepositFundsCommand) {
+    fun handle(command: Commands.DepositFunds) {
         // Prohibit deposits of zero or negative amounts
         if (command.amount <= 0) {
             throw FundsDepositException("The amount you want to deposit cannot be zero or negative")
         }
 
-        apply(FundsDepositedEvent(accountId, command.amount))
+        apply(Events.FundsDeposited(command.ledgerEntryId, accountId, command.amount))
     }
 
     @CommandHandler
-    fun handle(command: WithdrawFundsCommand) {
+    fun handle(command: Commands.WithdrawFunds) {
         // Only allow withdrawals of amounts >= current balance
         if (command.amount > balance) {
             throw FundsWithdrawalException("The amount you want to withdraw cannot exceed your balance")
@@ -48,21 +43,21 @@ class Account() {
             throw FundsWithdrawalException("The amount you want to withdraw cannot be zero or negative")
         }
 
-        apply(FundsWithdrawnEvent(accountId, command.amount))
+        apply(Events.FundsWithdrawn(command.ledgerEntryId, accountId, command.amount))
     }
 
     @EventSourcingHandler
-    fun on(event: AccountOpenedEvent) {
+    fun on(event: Events.AccountOpened) {
         accountId = event.accountId
     }
 
     @EventSourcingHandler
-    fun on(event: FundsDepositedEvent) {
+    fun on(event: Events.FundsDeposited) {
         balance += event.amount
     }
 
     @EventSourcingHandler
-    fun on(event: FundsWithdrawnEvent) {
+    fun on(event: Events.FundsWithdrawn) {
         balance -= event.amount
     }
 }

@@ -10,17 +10,17 @@ class BankInfoProjector {
     private var totalBalance = 0
 
     @EventHandler
-    fun on(event: FundsDepositedEvent) {
+    fun on(event: Events.FundsDeposited) {
         totalBalance += event.amount
     }
 
     @EventHandler
-    fun on(event: FundsWithdrawnEvent) {
+    fun on(event: Events.FundsWithdrawn) {
         totalBalance -= event.amount
     }
 
     @QueryHandler
-    fun handle(query: GetTotalAvailableBalanceQuery): Money {
+    fun handle(query: Queries.TotalBalance): Money {
         return totalBalance
     }
 }

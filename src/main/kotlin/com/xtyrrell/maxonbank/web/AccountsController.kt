@@ -3,6 +3,7 @@ package com.xtyrrell.maxonbank.web
 import com.xtyrrell.maxonbank.coreapi.*
 import com.xtyrrell.maxonbank.query.AccountView
 import com.xtyrrell.maxonbank.query.LedgerEntryView
+import com.xtyrrell.maxonbank.query.toDTO
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.axonframework.messaging.responsetypes.ResponseTypes
 import org.axonframework.queryhandling.QueryGateway
@@ -17,41 +18,47 @@ class AccountsController(
 ) {
 
     @PostMapping
-    fun create(): CompletableFuture<UUID> = commandGateway.send(OpenAccountCommand())
+    fun create(
+        @RequestBody openAccountRequest: OpenAccountRequest
+    ): CompletableFuture<UUID> = commandGateway.send(Commands.OpenAccount(openAccountRequest.accountId))
 
     @GetMapping
-    fun index(): CompletableFuture<List<AccountView>> = queryGateway.query(ListAccountsQuery(), ResponseTypes.multipleInstancesOf(AccountView::class.java))
+    fun index(): CompletableFuture<List<AccountView>> = queryGateway.query(Queries.Accounts(), ResponseTypes.multipleInstancesOf(AccountView::class.java))
 
     @GetMapping("/total-balance")
-    fun totalBalance() = queryGateway.query(GetTotalAvailableBalanceQuery(), ResponseTypes.instanceOf(Money::class.java))
+    fun totalBalance() = queryGateway.query(Queries.TotalBalance(), ResponseTypes.instanceOf(Money::class.java))
 
     @PostMapping("/{accountId}/deposits")
     fun deposit(
         @PathVariable("accountId") accountId: String,
         @RequestBody depositFundsRequest: DepositFundsRequest
-    ): CompletableFuture<UUID> {
-        // TODO: This returns nothing. Why is that? How can we make it return something, eg a UUID
-        // or amount deposited?
+    ): DepositFundsRequest {
         // TODO: Add error handling -- catch if there is an error and return something meaningful
-        return commandGateway.send(DepositFundsCommand(UUID.fromString(accountId), depositFundsRequest.amount))
+        // TODO: Find a way to avoid the "Not enough information to infer type variable R" error if we omit the `val x`
+        val x: CompletableFuture<Unit> = commandGateway.send(Commands.DepositFunds(depositFundsRequest.ledgerEntryId, UUID.fromString(accountId), depositFundsRequest.amount))
+
+        return depositFundsRequest
     }
 
     @PostMapping("/{accountId}/withdrawals")
     fun withdraw(
         @PathVariable("accountId") accountId: String,
         @RequestBody withdrawFundsRequest: WithdrawFundsRequest
-    ): CompletableFuture<UUID> {
-        // TODO: This returns nothing. Why is that? How can we make it return something, eg a UUID
-        // or amount withdrawn?
+    ): WithdrawFundsRequest {
         // TODO: Add error handling -- catch if there is an error and return something meaningful
-        return commandGateway.send(WithdrawFundsCommand(UUID.fromString(accountId), withdrawFundsRequest.amount))
+        // TODO: Find a way to avoid the "Not enough information to infer type variable R" error if we omit the `val x`
+        val x: CompletableFuture<Unit> = commandGateway.send(Commands.WithdrawFunds(withdrawFundsRequest.ledgerEntryId, UUID.fromString(accountId), withdrawFundsRequest.amount))
+
+        return withdrawFundsRequest
     }
 
     @GetMapping("/{accountId}")
     fun show(
         @PathVariable("accountId") accountId: String
-    ): CompletableFuture<AccountView>? {
-        return queryGateway.query(GetAccountDetailsQuery(UUID.fromString(accountId)), ResponseTypes.instanceOf(AccountView::class.java))
+    ): AccountDTO? {
+        val accountView = queryGateway.query(Queries.Account(UUID.fromString(accountId)), ResponseTypes.instanceOf(AccountView::class.java)).get()
+
+        return accountView?.toDTO()
     }
 
     // Using terminology from https://www.notion.so/Ubiquitous-Language-51b1115c4f42410fb2bd10e52548b1ad
@@ -59,7 +66,7 @@ class AccountsController(
     fun showLedger(
         @PathVariable("accountId") accountId: String
     ): CompletableFuture<List<LedgerEntryView>> {
-        return queryGateway.query(ListAccountHistoryQuery(UUID.fromString(accountId)),
+        return queryGateway.query(Queries.AccountLedgerEntries(UUID.fromString(accountId)),
             ResponseTypes.multipleInstancesOf(LedgerEntryView::class.java))
     }
 
@@ -68,10 +75,11 @@ class AccountsController(
         @PathVariable("accountId") accountId: String
     ): CompletableFuture<Money> {
         return queryGateway.query(
-            GetAccountAvailableBalanceQuery(UUID.fromString(accountId)), ResponseTypes.instanceOf(Money::class.java)
+            Queries.AccountBalance(UUID.fromString(accountId)), ResponseTypes.instanceOf(Money::class.java)
         )
     }
 }
 
-class DepositFundsRequest(val amount: Money)
-class WithdrawFundsRequest(val amount: Money)
+class OpenAccountRequest(val accountId: UUID)
+class DepositFundsRequest(val ledgerEntryId: UUID, val amount: Money)
+class WithdrawFundsRequest(val ledgerEntryId: UUID, val amount: Money)

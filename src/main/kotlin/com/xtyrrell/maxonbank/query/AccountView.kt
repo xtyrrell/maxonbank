@@ -2,7 +2,9 @@ package com.xtyrrell.maxonbank.query
 
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonManagedReference
+import com.xtyrrell.maxonbank.coreapi.AccountDTO
 import com.xtyrrell.maxonbank.coreapi.Money
+import com.xtyrrell.maxonbank.coreapi.Queries
 import org.axonframework.modelling.command.AggregateMember
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.*
@@ -16,9 +18,9 @@ class AccountView(
     @Id var accountId: UUID,
     var balance: Money = 0,
     @JsonManagedReference
-    @OneToMany(mappedBy = "accountView", fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "accountView", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @AggregateMember
-        var ledgerEntries: MutableList<LedgerEntryView> = Collections.emptyList()
+    var ledgerEntries: MutableList<LedgerEntryView> = Collections.emptyList()
 ) {
     fun addLedgerEntry(ledgerEntry: LedgerEntryView) {
         ledgerEntry.accountView = this
@@ -26,6 +28,11 @@ class AccountView(
         ledgerEntries.add(ledgerEntry)
     }
 }
+
+fun AccountView.toDTO() = AccountDTO(
+    accountId = accountId,
+    balance = balance
+)
 
 // For now, we're co-locating LedgerEntries with AccountView. We might want to move this out
 // into its own file later.

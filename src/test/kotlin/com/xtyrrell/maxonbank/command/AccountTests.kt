@@ -3,7 +3,6 @@ package com.xtyrrell.maxonbank.command
 import com.xtyrrell.maxonbank.coreapi.*
 import org.axonframework.test.aggregate.AggregateTestFixture
 import org.axonframework.test.aggregate.FixtureConfiguration
-import org.axonframework.test.matchers.Matchers
 import org.junit.jupiter.api.*
 import java.util.*
 
@@ -17,99 +16,109 @@ class AccountTests {
     }
 
     @Nested
-    @DisplayName("OpenAccountCommand")
+    @DisplayName("Commands.OpenAccount")
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class OpenAccountCommandTests {
         @Test
         fun `should open an account`() {
+            val accountId = UUID.randomUUID()
+
             fixture.givenNoPriorActivity()
-                .`when`(OpenAccountCommand())
+                .`when`(Commands.OpenAccount(accountId))
                 .expectSuccessfulHandlerExecution()
-                .expectEventsMatching(
-                    Matchers.exactSequenceOf(
-                        Matchers.messageWithPayload(
-                            Matchers.matches { payload: AccountOpenedEvent ->
-                                // This is weird, but I think it works. If we can cast [payload] to an
-                                // AccountOpenedEvent, then it must be one. If [payload] is any other type, I believe
-                                // this will throw an exception.
-                                // Still, it would be nicer to rather do this check at runtime, something like
-                                // `return payload is AccountOpenedEvent`
-                                true
-                            }
-                        )
-                    )
-                )
+                .expectEvents(Events.AccountOpened(accountId))
         }
     }
 
     @Nested
-    @DisplayName("DepositFundsCommand")
+    @DisplayName("Commands.DepositFunds")
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class DepositFundsCommandTests {
         @Test
         fun `should allow depositing funds for a non-zero positive amount`() {
             val accountId = UUID.randomUUID()
+            val ledgerEntryId = UUID.randomUUID()
 
             fixture
-                .given(AccountOpenedEvent(accountId))
-                .`when`(DepositFundsCommand(accountId, 500))
+                .given(Events.AccountOpened(accountId))
+                .`when`(Commands.DepositFunds(ledgerEntryId, accountId, 500,))
                 .expectSuccessfulHandlerExecution()
-                .expectEvents(FundsDepositedEvent(accountId, 500))
+                .expectEvents(Events.FundsDeposited(ledgerEntryId, accountId, 500))
         }
 
         @Test
-        fun `should prevent depositing funds for zero or negative amount`() {
+        fun `should prevent depositing funds for a negative amount`() {
             val accountId = UUID.randomUUID()
+            val ledgerEntryId = UUID.randomUUID()
 
             fixture
-                .given(AccountOpenedEvent(accountId))
-                .`when`(DepositFundsCommand(accountId, -500))
+                .given(Events.AccountOpened(accountId))
+                .`when`(Commands.DepositFunds(ledgerEntryId, accountId, -500))
                 .expectException(FundsDepositException::class.java)
+        }
+
+        @Test
+        fun `should prevent depositing funds for a zero amount`() {
+            val accountId = UUID.randomUUID()
+            val ledgerEntryId = UUID.randomUUID()
 
             fixture
-                .given(AccountOpenedEvent(accountId))
-                .`when`(DepositFundsCommand(accountId, 0))
+                .given(Events.AccountOpened(accountId))
+                .`when`(Commands.DepositFunds(ledgerEntryId, accountId, 0))
                 .expectException(FundsDepositException::class.java)
         }
     }
 
     @Nested
-    @DisplayName("WithdrawFundsCommand")
+    @DisplayName("Commands.WithdrawFunds")
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class WithdrawFundsCommandTests {
         @Test
         fun `should allow withdrawing funds for a non-zero positive amount`() {
             val accountId = UUID.randomUUID()
+            val depositLedgerEntryId = UUID.randomUUID()
+            val withdrawLedgerEntryId = UUID.randomUUID()
 
             fixture
-                .given(AccountOpenedEvent(accountId), FundsDepositedEvent(accountId, 500))
-                .`when`(WithdrawFundsCommand(accountId, 500))
+                .given(Events.AccountOpened(accountId), Events.FundsDeposited(depositLedgerEntryId, accountId, 1000))
+                .`when`(Commands.WithdrawFunds(withdrawLedgerEntryId, accountId, 500))
                 .expectSuccessfulHandlerExecution()
-                .expectEvents(FundsWithdrawnEvent(accountId, 500))
+                .expectEvents(Events.FundsWithdrawn(withdrawLedgerEntryId, accountId, 500))
         }
 
         @Test
-        fun `should prevent withdrawing funds for a zero or negative amount`() {
+        fun `should prevent withdrawing funds for a zero amount`() {
             val accountId = UUID.randomUUID()
+            val depositLedgerEntryId = UUID.randomUUID()
+            val withdrawLedgerEntryId = UUID.randomUUID()
 
             fixture
-                .given(AccountOpenedEvent(accountId), FundsDepositedEvent(accountId, 500))
-                .`when`(WithdrawFundsCommand(accountId, -500))
+                .given(Events.AccountOpened(accountId), Events.FundsDeposited(depositLedgerEntryId, accountId, 1000))
+                .`when`(Commands.WithdrawFunds(withdrawLedgerEntryId, accountId, 0))
                 .expectException(FundsWithdrawalException::class.java)
+        }
+
+        @Test
+        fun `should prevent withdrawing funds for a negative amount`() {
+            val accountId = UUID.randomUUID()
+            val depositLedgerEntryId = UUID.randomUUID()
+            val withdrawLedgerEntryId = UUID.randomUUID()
 
             fixture
-                .given(AccountOpenedEvent(accountId), FundsDepositedEvent(accountId, 500))
-                .`when`(WithdrawFundsCommand(accountId, 0))
+                .given(Events.AccountOpened(accountId), Events.FundsDeposited(depositLedgerEntryId, accountId, 1000))
+                .`when`(Commands.WithdrawFunds(withdrawLedgerEntryId, accountId, -500))
                 .expectException(FundsWithdrawalException::class.java)
         }
 
         @Test
         fun `should prevent withdrawing funds greater than account balance`() {
             val accountId = UUID.randomUUID()
+            val withdrawLedgerEntryId = UUID.randomUUID()
+            val depositLedgerEntryId = UUID.randomUUID()
 
             fixture
-                .given(AccountOpenedEvent(accountId), FundsDepositedEvent(accountId, 500))
-                .`when`(WithdrawFundsCommand(accountId, 600))
+                .given(Events.AccountOpened(accountId), Events.FundsDeposited(depositLedgerEntryId, accountId, 500))
+                .`when`(Commands.WithdrawFunds(withdrawLedgerEntryId, accountId, 600))
                 .expectException(FundsWithdrawalException::class.java)
         }
     }
